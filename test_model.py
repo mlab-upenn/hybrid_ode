@@ -13,9 +13,7 @@ import matplotlib.pyplot as plt
 
 from models import HybridODE
 
-# ----------------------------------------------------------------------------- #
-# Utility helpers                                                               #
-# ----------------------------------------------------------------------------- #
+
 def load_config(path: str = "config.yaml") -> Dict:
     with open(path, "r") as fp:
         return yaml.safe_load(fp)
@@ -32,9 +30,8 @@ def batch_iter(data: jnp.ndarray, batch: int) -> Generator[Tuple[jnp.ndarray, in
     for i in range(0, n, batch):
         yield data[i:i + batch], i // batch
 
-# ----------------------------------------------------------------------------- #
-# Metric computation                                                            #
-# ----------------------------------------------------------------------------- #
+
+
 STATE_NAMES = ["delta_x", "delta_y", "yaw", "steering",
                "velocity", "side_slip", "yaw_rate"]
 
@@ -65,48 +62,7 @@ def trajectory_metrics(pred: jnp.ndarray, true: jnp.ndarray) -> Dict:
     }
     return metrics
 
-# ----------------------------------------------------------------------------- #
-# Fast CSV writer (vectorised)                                                  #
-# ----------------------------------------------------------------------------- #
-def save_batch(batch_id: int,
-               pred: jnp.ndarray,
-               true: jnp.ndarray,
-               metrics: Dict,
-               t_vec: np.ndarray,
-               outdir: Path,
-               state_dim: int,
-               state_names: list) -> None:
-    outdir.mkdir(exist_ok=True)
-    pred_np = np.asarray(pred)
-    true_np = np.asarray(true)
-    B, T, _ = pred_np.shape
-    traj_ids = np.repeat(np.arange(B), T)
-    step_ids = np.tile(np.arange(T), B)
-    times    = np.tile(t_vec, B)
-    flat_pred = pred_np.reshape(-1, state_dim)
-    flat_true = true_np.reshape(-1, state_dim)
-    flat_err  = flat_pred - flat_true
-    if "yaw" in state_names:
-        yaw_idx = state_names.index("yaw")
-        flat_err[:, yaw_idx] = ((flat_err[:, yaw_idx] + np.pi) % (2*np.pi)) - np.pi
-    df_dict = {
-        "batch": batch_id,
-        "traj":  traj_ids,
-        "step":  step_ids,
-        "time":  times,
-    }
-    for i, name in enumerate(state_names):
-        df_dict[f"pred_{name}"] = flat_pred[:, i]
-        df_dict[f"true_{name}"] = flat_true[:, i]
-        df_dict[f"err_{name}"]  = flat_err[:, i]
-    pd.DataFrame(df_dict).to_csv(outdir / f"batch_{batch_id}.csv", index=False)
-    with open(outdir / f"batch_{batch_id}_metrics.json", "w") as fp:
-        import json
-        json.dump(metrics, fp, indent=2)
 
-# ----------------------------------------------------------------------------- #
-# Main routine                                                                  #
-# ----------------------------------------------------------------------------- #
 def main(cfg_path: str = "config.yaml") -> None:
     config = load_config(cfg_path)
     bs  = config["training"]["batch_size"]
@@ -138,14 +94,15 @@ def main(cfg_path: str = "config.yaml") -> None:
         pred = model.predict_batch_trajectories(params, s0, u, dt)
         m = trajectory_metrics(pred, gt)
         overall.append(m)
-        save_batch(bid, pred, gt, m, t_vec, outdir, st_dim, state_names)
+
         print(f"[Batch {bid}]  total MSE={m['mse_total']:.6f} Pos RMSE={m['position_rmse']:.4f}")
 
         # Plot and save for first 3 trajectories in this batch
         vis_dir = Path("visualizations")
         vis_dir.mkdir(exist_ok=True)
         num_traj = min(3, pred.shape[0])
-        for traj_idx in range(num_traj):
+        for i in range(num_traj):
+            traj_idx = pred.shape[0] - num_traj + i
             fig, axs = plt.subplots(9, 1, figsize=(10, 22), sharex=True)
             for i, name in enumerate(STATE_NAMES):
                 axs[i].plot(t_vec, gt[traj_idx, :, i], label=f"True {name}")

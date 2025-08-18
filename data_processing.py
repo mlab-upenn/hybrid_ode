@@ -9,6 +9,9 @@ def load_config(config_path = "config.yaml"):
         config = yaml.safe_load(file)
     return config
 
+
+
+
 def load_npz_data(data_dir="data"):
     data_dir = Path(data_dir)
     npz_files = sorted(data_dir.glob("*.npz"))
@@ -26,6 +29,9 @@ def load_npz_data(data_dir="data"):
     inputs = np.concatenate(all_inputs, axis=1)
     return states, inputs, timestamps
 
+
+
+
 def validate_data(states, inputs, config):
     if np.any(np.isnan(states)) or np.any(np.isnan(inputs)):
         raise ValueError("Data contains NaN values")
@@ -34,6 +40,9 @@ def validate_data(states, inputs, config):
     if config.get('verbose', True):
         print("Data validation passed")
 
+
+
+
 def convert_to_relative_pos(states):
     for robot_idx in range(states.shape[1]):
         x_initial = states[0, robot_idx, 0]
@@ -41,6 +50,9 @@ def convert_to_relative_pos(states):
         states[:, robot_idx, 0] -= x_initial
         states[:, robot_idx, 1] -= y_initial
     return states
+
+
+
 
 def split_data(states, inputs, timestamps, config):
     train_ratio = config["data"]["train_ratio"]
@@ -79,6 +91,9 @@ def split_data(states, inputs, timestamps, config):
            val_states, val_inputs, val_timestamps, \
            train_robots, val_robots, test_robots    
 
+
+
+
 def create_multistep_samples(states, inputs, timestamps, config):
     n_steps = config["data"]["num_multi_step_predictions"]
     num_timesteps, num_robots, _ = states.shape
@@ -92,7 +107,12 @@ def create_multistep_samples(states, inputs, timestamps, config):
     samples_array = np.stack(samples, axis=0)
     return samples_array
 
+
+
+
 def process_data(config_path="config.yaml"):
+
+
     config = load_config(config_path)
     output_dir = Path("processed_data")
     output_dir.mkdir(exist_ok=True)
@@ -102,14 +122,18 @@ def process_data(config_path="config.yaml"):
     config['data']['dt'] = dt
     with open(config_path, "w") as f:
         yaml.dump(config, f)
+
     validate_data(states, inputs, config)
     test_states, test_inputs, test_timestamps, \
     train_states, train_inputs, train_timestamps, \
     val_states, val_inputs, val_timestamps, \
     train_robots, val_robots, test_robots = split_data(states, inputs, timestamps, config)
+
+
     train_samples = create_multistep_samples(train_states, train_inputs, train_timestamps, config)
     val_samples = create_multistep_samples(val_states, val_inputs, val_timestamps, config)
     test_samples = create_multistep_samples(test_states, test_inputs, test_timestamps, config)
+
     np.savez(output_dir / "train_data.npz", samples=train_samples)
     np.savez(output_dir / "val_data.npz", samples=val_samples)
     np.savez(output_dir / "test_data.npz", samples=test_samples)
