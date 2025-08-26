@@ -1,12 +1,16 @@
 data:
-  dt: 0.01666666753590107
-  input_dir: data_20deg
+  dt: 0.05000000260770321
+  input_dir: data_flat
   noise_std: 0.0
-  num_multi_step_predictions: 100
+  num_multi_step_predictions: 20
   output_dir: results/
   test_ratio: 0.15
   train_ratio: 0.7
   val_ratio: 0.15
+dropout_rate: 0.1
+hidden_dims:
+- 64
+- 64
 model:
   input_names:
   - acceleration
@@ -29,11 +33,13 @@ model:
   - side_slip
   - yaw_rate
 model_type: HybridODE
+neural_model_type: mlp
+num_attention_heads: 4
 random_seed: 42
 training:
-  batch_size: 2048
+  batch_size: 4096
   early_stopping_patience: 20
-  epochs: 10000
+  epochs: 1000
   learning_rate: 0.001
   plateau_scheduler:
     factor: 0.5

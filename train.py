@@ -120,7 +120,9 @@ def train_step(train_state, batch, model, dt):
     true_traj = batch[:, :state_dim, :].transpose(0, 2, 1)
 
     def loss_fn(params):
-        pred_traj = model.predict_batch_trajectories(params, initial_state, inputs_sequence, dt)
+        pred_traj = model.predict_batch_trajectories(
+            params, initial_state, inputs_sequence, dt, training=True  # Add training=True
+        )
         return loss_function(pred_traj, true_traj)
 
     loss, grads = jax.value_and_grad(loss_fn)(train_state.params)
@@ -144,7 +146,9 @@ def validate(train_state, val_samples, model, dt, batch_size):
         initial_state = batch[:, :state_dim, 0]
         inputs_sequence = batch[:, state_dim:, :].transpose(0, 2, 1)
         true_traj = batch[:, :state_dim, :].transpose(0, 2, 1)
-        pred_traj = model.predict_batch_trajectories(train_state.params, initial_state, inputs_sequence, dt)
+        pred_traj = model.predict_batch_trajectories(
+            train_state.params, initial_state, inputs_sequence, dt, training=False  # Add training=False
+        )
         loss = loss_function(pred_traj, true_traj)
         losses.append(loss)
     return float(jnp.mean(jnp.array(losses)))
