@@ -1,6 +1,6 @@
 data:
   dt: 0.05000000260770321
-  input_dir: data_flat
+  input_dir: data0deg
   noise_std: 0.0
   num_multi_step_predictions: 20
   output_dir: results/
