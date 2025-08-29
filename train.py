@@ -83,21 +83,33 @@ def yaw_error(pred, true):
     """Shortest-path angular error for yaw angle."""
     return ((pred - true + jnp.pi) % (2 * jnp.pi)) - jnp.pi
 
+
+
+def side_slip_error(pred, true):
+    """Shortest-path angular error for side slip angle."""
+    return ((pred - true + jnp.pi/2) % (2 * jnp.pi)) - jnp.pi/2
+
 def loss_function(pred_traj, true_traj):
     """Mean squared error for all states with proper yaw angle handling."""
     # Handle yaw angle (index 2) with circular distance
     yaw_pred = pred_traj[..., 2]
     yaw_true = true_traj[..., 2]
     yaw_loss = jnp.mean(yaw_error(yaw_pred, yaw_true) ** 2)
+
+
+    side_slip_pred = pred_traj[..., 5]
+    side_slip_true = true_traj[..., 5]
+    side_slip_loss = jnp.mean(side_slip_error(side_slip_pred, side_slip_true) ** 2)
     
     # Handle all other states with regular MSE
-    other_indices = jnp.array([0, 1, 3, 4, 5, 6])  # all except yaw (index 2)
+    other_indices = jnp.array([0, 1, 3, 4, 6])  # all except yaw (index 2)
     other_pred = pred_traj[..., other_indices]
     other_true = true_traj[..., other_indices]
     other_loss = jnp.mean((other_pred - other_true) ** 2)
     
     # Combine losses
     total_loss = other_loss + yaw_loss
+    total_loss += side_slip_loss
     return total_loss
 
 # def loss_function(pred_traj, true_traj):
