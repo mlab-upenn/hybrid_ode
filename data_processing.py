@@ -233,8 +233,6 @@ def create_multistep_samples(states, inputs, timestamps, config):
     samples_array = np.stack(samples, axis=0)  # (num_samples, 9, n_steps)
     return samples_array
 
-
-
 def process_data(config_path="config.yaml"):
     """
     Main function to process the dataset.
@@ -242,8 +240,10 @@ def process_data(config_path="config.yaml"):
     Saves processed data to disk.
     """
     config = load_config(config_path)
-    output_dir = Path("processed_data")
-    output_dir.mkdir(exist_ok=True)
+    input_dir = Path(config["data"]["input_dir"])
+    base_name = input_dir.name
+    output_dir = Path("processed_data") / base_name
+    output_dir.mkdir(parents=True, exist_ok=True)
     # Load raw data
     states, inputs, timestamps = load_npz_data(config["data"]["input_dir"])
 
@@ -303,14 +303,14 @@ def process_data(config_path="config.yaml"):
 if __name__ == "__main__":
     process_data("config.yaml")
     # Print normalization parameters for yaw to verify
-    normalization_params = np.load("processed_data/train_data.npz")
-    with open("processed_data/normalization_params.json", "r") as f:
-        norm = json.load(f)
-    print("Yaw normalization check:")
-    print("Yaw mean:", norm['state_mean'][2])
-    print("Yaw std:", norm['state_std'][2])
-    print("Full state mean:", norm['state_mean'])
-    print("Full state std:", norm['state_std'])
+    # normalization_params = np.load("processed_data/train_data.npz")
+    # with open("processed_data/normalization_params.json", "r") as f:
+    #     norm = json.load(f)
+    # print("Yaw normalization check:")
+    # print("Yaw mean:", norm['state_mean'][2])
+    # print("Yaw std:", norm['state_std'][2])
+    # print("Full state mean:", norm['state_mean'])
+    # print("Full state std:", norm['state_std'])
   
 
 

@@ -138,18 +138,20 @@ def main(cfg_path: str = "config.yaml") -> None:
     bs  = config["training"]["batch_size"]
     dt  = config["data"]["dt"]                     # adjust if needed
 
+    indir = Path(config["data"]["input_dir"])
+    base_name = indir.name
+    processed_dir = Path("processed_data") / base_name
+    outdir = Path("test_results") / base_name
+
     # --------------------------------------------------------------------- #
     print("Loading test data …")
-    test_samples, norm = load_test_data()
+    test_samples, norm = load_test_data(processed_dir=processed_dir)
     n_steps = test_samples.shape[2]
     t_vec   = np.arange(n_steps) * dt
 
-
-    outdir = Path("test_results")
-
     # --------------------------------------------------------------------- #
     print("Loading trained parameters …")
-    params_path = "/home/saichand/ros2_ws/src/hybrid_ode/results/model_params.pkl"
+    params_path = Path("results") / base_name / "model_params.pkl"
    
     with open(params_path, "rb") as fp:
         params = pickle.load(fp)

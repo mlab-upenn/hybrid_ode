@@ -17,7 +17,7 @@ import json
 from models import HybridODE, create_train_state, Node
 
 
-print(jax.devices())
+# print(jax.devices())
 def load_data(processed_dir="processed_data"):
     """
     Loads processed train/val/test samples and normalization parameters as JAX arrays.
@@ -157,6 +157,12 @@ def run_training_loop(train_samples, val_samples, model, train_state, dt, epochs
     patience_counter = 0
     train_losses = []
     val_losses = []
+
+    # Path to save model parameters
+    params_dir = Path("results") / base_name
+    params_dir.mkdir(parents=True, exist_ok=True)
+    params_path = params_dir / "model_params.pkl"
+
     for epoch in range(epochs):
         epoch_losses = []
         batch_iter = tqdm(create_minibatches(train_samples, batch_size, shuffle=True),
@@ -181,12 +187,18 @@ def run_training_loop(train_samples, val_samples, model, train_state, dt, epochs
             "epoch": epoch+1,
             "learning_rate": current_lr
         })
-        print(f"Epoch {epoch+1}/{epochs} - Train Loss: {avg_train_loss:.6f}")
         if (epoch+1) % validation_interval == 0:
+            print(f"Epoch {epoch+1}/{epochs} - Train Loss: {avg_train_loss:.6f}")
             val_loss = validate(train_state, val_samples, model, dt, batch_size)
             val_losses.append(val_loss)
             wandb.log({"val_loss": val_loss, "epoch": epoch+1})
             print(f"Validation Loss: {val_loss:.6f}")
+
+            # Autosave model parameters
+            with open(params_path, "wb") as f:
+                pickle.dump(train_state.params, f)
+            print(f"Autosaved model parameters to {params_path}")
+
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 patience_counter = 0
@@ -212,10 +224,6 @@ def get_current_lr(train_state):
 
 
 if __name__ == "__main__":
-    train_samples, val_samples, test_samples = load_data()
-    
-    # Print device info for arrays and params
-    print(f"train_samples device: {train_samples.device}")
     # Load config
     with open("config.yaml", 'r') as f:
         config = yaml.safe_load(f)
@@ -229,7 +237,13 @@ if __name__ == "__main__":
     weight_decay = config['training']['weight_decay']
     key = jax.random.PRNGKey(config['random_seed'])
 
+    input_dir = Path(config["data"]["input_dir"])
+    base_name = input_dir.name
+    output_dir = Path("processed_data") / base_name
+    train_samples, val_samples, test_samples = load_data(processed_dir=output_dir)
     
+    # Print device info for arrays and params
+    print(f"train_samples device: {train_samples.device}")    
 
     # Initialize model and train state
     if config['model_type'] == 'HybridODE':

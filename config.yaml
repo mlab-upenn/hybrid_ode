@@ -1,6 +1,6 @@
 data:
-  dt: 0.01666666753590107
-  input_dir: data
+  dt: 0.05000000260770321
+  input_dir: isaac_data/data0deg
   noise_std: 0.0
   num_multi_step_predictions: 10
   output_dir: results/
@@ -28,10 +28,10 @@ model:
   - velocity
   - side_slip
   - yaw_rate
-model_type: HybridODE  #HybridODE, NeuralODE, KinematicBicycle, DynamicBicycle
+model_type: HybridODE
 random_seed: 42
 training:
-  batch_size: 30000
+  batch_size: 10000
   early_stopping_patience: 20
   epochs: 1000
   learning_rate: 0.001
