@@ -4,7 +4,6 @@ evaluation_plots
 evaluation_results
 __pycache__
 wandb
-results
 test_results
 visualizations
 data

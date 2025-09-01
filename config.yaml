@@ -1,12 +1,16 @@
 data:
   dt: 0.05000000260770321
-  input_dir: isaac_data/data0deg
+  input_dir: isaac_data/data15deg
   noise_std: 0.0
-  num_multi_step_predictions: 10
+  num_multi_step_predictions: 20
   output_dir: results/
   test_ratio: 0.15
   train_ratio: 0.7
   val_ratio: 0.15
+dropout_rate: 0.1
+hidden_dims:
+- 64
+- 64
 model:
   input_names:
   - acceleration
@@ -35,6 +39,11 @@ training:
   early_stopping_patience: 20
   epochs: 1000
   learning_rate: 0.001
+  plateau_scheduler:
+    factor: 0.5
+    min_lr: 1e-7
+    patience: 5
+    threshold: 1e-4
   segment_size: 80
   validation_interval: 10
   weight_decay: 0.0001
