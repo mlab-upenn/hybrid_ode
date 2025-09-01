@@ -39,7 +39,7 @@ random_seed: 42
 training:
   batch_size: 4096
   early_stopping_patience: 20
-  epochs: 50
+  epochs: 100
   learning_rate: 0.001
   plateau_scheduler:
     factor: 0.5
