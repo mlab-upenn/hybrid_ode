@@ -46,7 +46,7 @@ class PlateauScheduler:
         return self.current_lr
 
 # print(jax.devices())
-def load_data(processed_dir="processed_data", base_name="default"):
+def load_data(processed_dir="processed_data", base_name="data0deg"):
     """Loads processed train/val/test samples as JAX arrays."""
     processed_dir = Path(processed_dir) / base_name
     train_data = np.load(processed_dir / "train_data.npz")

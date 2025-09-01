@@ -68,7 +68,6 @@ def main(cfg_path: str = "config.yaml") -> None:
     bs  = config["training"]["batch_size"]
     dt  = config["data"]["dt"]
 
-<<<<<<< HEAD
     indir = Path(config["data"]["input_dir"])
     base_name = indir.name
     processed_dir = Path("processed_data") / base_name
@@ -76,7 +75,7 @@ def main(cfg_path: str = "config.yaml") -> None:
 
     # --------------------------------------------------------------------- #
     print("Loading test data …")
-    test_samples, norm = load_test_data(processed_dir=processed_dir)
+    test_samples = load_test_data(processed_dir=processed_dir)
     n_steps = test_samples.shape[2]
     t_vec   = np.arange(n_steps) * dt
 
@@ -84,16 +83,6 @@ def main(cfg_path: str = "config.yaml") -> None:
     print("Loading trained parameters …")
     params_path = Path("results") / base_name / "model_params.pkl"
    
-=======
-    print("Loading test data …")
-    test_samples = load_test_data()
-    n_steps = test_samples.shape[2]
-    t_vec   = np.arange(n_steps) * dt
-    outdir = Path("test_results")
-
-    print("Loading trained parameters …")
-    params_path = config.get("model_params_path", "results/model_params.pkl")
->>>>>>> cleanhode
     with open(params_path, "rb") as fp:
         params = pickle.load(fp)
 
